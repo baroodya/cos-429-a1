@@ -14,6 +14,7 @@
 
 # TODO: Implement me!
 import canny
+import cannyK
 import cv2
 from skimage import io
 import matplotlib.pyplot as plt
@@ -22,8 +23,8 @@ import numpy as np
 
 def main():
     tHs = [0.5]
-    sigmas = [1.2]
-    tLs = [0.15]
+    sigmas = [2.5]
+    tLs = [0.25]
 
     # sigmas = [2.0]
     # tLs = [0.1]
@@ -31,12 +32,15 @@ def main():
 
     im_names = ["csbldg", "Grace_Hopper"]
 
-    im = io.imread("example_images/" + im_names[1] + ".jpg", as_gray=True)
+    im = io.imread("example_images/" + im_names[0] + ".jpg", as_gray=True) / 255.0
 
     for i in range(len(sigmas)):
         for j in range(len(tLs)):
             for k in range(len(tHs)):
-                # Fx, Fy = canny.filteredGradient(im, sigma)
+                Fx, Fy = canny.filteredGradient(im, sigmas[i])
+                FxK, FyK = cannyK.filteredGradient(im, sigmas[i])
+                if np.array_equal(Fx, FxK) and np.array_equal(Fy, FyK):
+                    print("Equal!")
                 # cv2.namedWindow("X direction Gradient")
                 # cv2.imshow("X direction Gradient", Fx)
                 # cv2.waitKey(0)
@@ -44,28 +48,39 @@ def main():
                 # cv2.namedWindow("Y direction Gradient")
                 # cv2.imshow("Y direction Gradient", Fy)
                 # cv2.waitKey(0)
-                # plt.imshow(Fx, cmap="gray")
-                # plt.show()
+                plt.imshow(Fx, cmap="gray")
+                plt.show()
+                plt.imshow(FxK, cmap="gray")
+                plt.show()
 
-                # plt.imshow(Fy, cmap="gray")
-                # plt.show()
+                plt.imshow(Fy, cmap="gray")
+                plt.show()
 
-                # F, D = canny.edgeStrengthAndOrientation(Fx, Fy)
+                F, D = canny.edgeStrengthAndOrientation(Fx, Fy)
+                FK, DK = cannyK.edgeStrengthAndOrientation(FxK, FyK)
                 # cv2.namedWindow("Gradient Magnitude")
-                # cv2.imshow("Gradient Magnitude", F)
-                # cv2.waitKey(0)
+                plt.imshow(F, cmap="gray")
+                plt.show()
+                plt.imshow(FK, cmap="gray")
+                plt.show()
 
-                # I = canny.suppression(F, D)
+                I = canny.suppression(F, D)
+                IK = cannyK.suppression(FK, DK)
                 # cv2.namedWindow("Suppressed Image")
-                # cv2.imshow("Suppressed Image", I)
-                # cv2.waitKey(0)
+                plt.imshow(I, cmap="gray")
+                plt.show()
+                plt.imshow(IK, cmap="gray")
+                plt.show()
 
                 edgeMap = canny.cannyEdgeDetection(im, sigmas[i], tHs[k], tLs[j])
+                edgeMapK = cannyK.cannyEdgeDetection(im, sigmas[i], tHs[k], tLs[j])
                 print("sigma =", sigmas[i])
                 print("tL =", tLs[j])
                 print("tH =", tHs[k])
                 print("----------------------------------")
                 plt.imshow(edgeMap, cmap="gray")
+                plt.show()
+                plt.imshow(edgeMapK, cmap="gray")
                 plt.show()
 
                 # io.imsave('my_images/' + im_names[i] + '_H_gradient.jpg', Fx)
