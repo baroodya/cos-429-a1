@@ -17,7 +17,7 @@ def filteredGradient(im, sigma):
     # Fy: 2D double array with shape (height, width). The vertical
     #     gradients.
 
-    w = int(6 * sigma)
+    w = int(np.rint(6 * sigma))
     if w % 2 == 0:
         w += 1
 
@@ -97,6 +97,10 @@ def edgeStrengthAndOrientation(Fx, Fy):
     D = np.arctan(Fy / Fx)
     assert D.shape == Fx.shape == Fy.shape
 
+    for row in range(D.shape[0]):
+        for col in range(D.shape[1]):
+            if D[row][col] > 0:
+                D[row][col] += np.pi
     return F, D
 
 
@@ -164,14 +168,14 @@ def suppression(F, D):
         for col in range(F.shape[1]):
             # change direction to be one of [0, pi/4, pi/2, 3pi/4]
             dir = D[row][col]
-            if dir >= -(np.pi / 8) and dir < (np.pi / 8):
-                best_dirs[row][col] = 0
-            elif dir >= (np.pi / 8) and dir < (3 * np.pi / 8):
+            if dir >= (np.pi / 8) and dir < (3 * np.pi / 8):
                 best_dirs[row][col] = np.pi / 4
-            elif dir >= -(3 * np.pi / 8) and dir < -(np.pi / 8):
+            elif dir >= (3 * np.pi / 8) and dir < (5 * np.pi / 8):
+                best_dirs[row][col] = np.pi / 2
+            elif dir >= (5 * np.pi / 8) and dir < (7 * np.pi / 8):
                 best_dirs[row][col] = 3 * np.pi / 4
             else:
-                best_dirs[row][col] = np.pi / 2
+                best_dirs[row][col] = 0
 
             set_intensity(I, row, col, best_dirs[row][col])
 
