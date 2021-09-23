@@ -51,26 +51,26 @@ def harris_corners(img, window_size=3, k=0.04):
     dx = filters.sobel_v(img)
     dy = filters.sobel_h(img)
 
-    ### YOUR CODE HERE
+    # YOUR CODE HERE
 
     windowed_dx2 = convolve(dx * dx, window, mode='constant')
     windowed_dy2 = convolve(dy * dy, window, mode='constant')
     windowed_dxy = convolve(dx * dy, window, mode='constant')
 
     M = np.zeros((H, W, 2, 2))
-    M[:,:,0,0] = windowed_dx2
-    M[:,:,0,1] = windowed_dxy
-    M[:,:,1,0] = windowed_dxy
-    M[:,:,1,1] = windowed_dy2
-    
+    M[:, :, 0, 0] = windowed_dx2
+    M[:, :, 0, 1] = windowed_dxy
+    M[:, :, 1, 0] = windowed_dxy
+    M[:, :, 1, 1] = windowed_dy2
+
 #     M = convolve(M, window)
-    
+
     det = np.linalg.det(M)
-    trace = np.trace(M,axis1=-2,axis2=-1)
-    
+    trace = np.trace(M, axis1=-2, axis2=-1)
+
     response = det - k * np.square(trace)
 
-    ### END YOUR CODE
+    # END YOUR CODE
 
     return response
 
@@ -94,14 +94,14 @@ def simple_descriptor(patch):
         feature: 1D array of shape (H * W)
     """
     feature = []
-    ### YOUR CODE HERE
+    # YOUR CODE HERE
     patch_mu = patch.mean()
     patch_std = patch.std()
     patch_std = patch_std if patch_std != 0 else 1
     normalized = (patch - patch_mu) / patch_std
-    
+
     feature = normalized.flatten()
-    ### END YOUR CODE
+    # END YOUR CODE
     return feature
 
 
@@ -154,13 +154,13 @@ def match_descriptors(desc1, desc2, threshold=0.5):
     M = desc1.shape[0]
     dists = cdist(desc1, desc2)
 
-    ### YOUR CODE HERE
+    # YOUR CODE HERE
     for i in range(len(dists)):
         l = dists[i]
         if np.sort(l)[0] / np.sort(l)[1] < threshold:
             matches.append([i, np.argmin(l)])
     matches = np.asarray(matches)
-    ### END YOUR CODE
+    # END YOUR CODE
 
     return matches
 
@@ -192,14 +192,14 @@ def fit_affine_matrix(p1, p2):
     p2 = pad(p2)
 
     H = np.eye(3)
-    
-    ### YOUR CODE HERE
-    pass
-    ### END YOUR CODE
+
+    # YOUR CODE HERE
+    H = np.linalg.lstsq(p2, p1, rcond=None)[0]
+    # END YOUR CODE
 
     # Sometimes numerical issues cause least-squares to produce the last
     # column which is not exactly [0, 0, 1]
-    H[:,2] = np.array([0, 0, 1])
+    H[:, 2] = np.array([0, 0, 1])
     return H
 
 
@@ -245,16 +245,16 @@ def ransac(keypoints1, keypoints2, matches, n_iters=200, threshold=20):
     N = matches.shape[0]
     n_samples = int(N * 0.2)
 
-    matched1 = pad(keypoints1[matches[:,0]])
-    matched2 = pad(keypoints2[matches[:,1]])
+    matched1 = pad(keypoints1[matches[:, 0]])
+    matched2 = pad(keypoints2[matches[:, 1]])
 
     max_inliers = np.zeros(N, dtype=bool)
     n_inliers = 0
-    
+
     H = np.eye(3)
 
     # RANSAC iteration start
-    
+
     # Note: while there're many ways to do random sampling, please use
     # `np.random.shuffle()` followed by slicing out the first `n_samples`
     # matches here in order to align with the auto-grader.
@@ -266,13 +266,39 @@ def ransac(keypoints1, keypoints2, matches, n_iters=200, threshold=20):
         sample2 = pad(keypoints2[samples[:,1]])
     '''
 
-    ### YOUR CODE HERE
-    
-    pass
+    # YOUR CODE HERE
         
-    ### END YOUR CODE
+    coord_index = {}
+    for i in range(N):
+        coord = str(orig_matches[i])
+        coord_index[coord] = i
+        
+    for i in range(n_iters):
+        np.random.shuffle(matches)
+        samples = matches[:n_samples]
+        sample1 = pad(keypoints1[samples[:,0]])
+        sample2 = pad(keypoints2[samples[:,1]])
+        
+        H = np.linalg.lstsq(sample2, sample1, rcond=None)[0]
+        
+        transformed2 = sample2 @ H
+        
+        dist = np.sqrt((transformed2[:, 0] - sample1[:, 0])**2 + (transformed2[:, 0] - sample1[:, 0])**2)
+        
+        curr_matches = samples[dist < threshold] 
+        
+        if len(curr_matches) > n_inliers:
+            #Scrub max inliers
+            max_inliers = np.zeros(N, dtype=bool)
+            for j in curr_matches:
+                max_inliers[coord_index[str(j)]] = True
+            
+            n_inliers = len(curr_matches)
+            
+        
+    
+    # END YOUR CODE
     return H, orig_matches[max_inliers]
-
 
 
 def linear_blend(img1_warped, img2_warped):
@@ -292,28 +318,31 @@ def linear_blend(img1_warped, img2_warped):
     Returns:
         merged: Merged image in output space
     """
-    out_H, out_W = img1_warped.shape # Height and width of output space
+    out_H, out_W = img1_warped.shape  # Height and width of output space
     img1_mask = (img1_warped != 0)  # Mask == 1 inside the image
     img2_mask = (img2_warped != 0)  # Mask == 1 inside the image
 
     # Find column of middle row where warped image 1 ends
     # This is where to end weight mask for warped image 1
-    right_margin = out_W - np.argmax(np.fliplr(img1_mask)[out_H//2, :].reshape(1, out_W), 1)[0]
+    right_margin = out_W - \
+        np.argmax(np.fliplr(img1_mask)[out_H//2, :].reshape(1, out_W), 1)[0]
 
     # Find column of middle row where warped image 2 starts
     # This is where to start weight mask for warped image 2
     left_margin = np.argmax(img2_mask[out_H//2, :].reshape(1, out_W), 1)[0]
 
-    ### YOUR CODE HERE
-    blend = np.linspace(1,0, num=right_margin - left_margin)
-    img1_weight = np.concatenate((np.ones(left_margin),blend,np.zeros(out_W - right_margin)))
+    # YOUR CODE HERE
+    blend = np.linspace(1, 0, num=right_margin - left_margin)
+    img1_weight = np.concatenate(
+        (np.ones(left_margin), blend, np.zeros(out_W - right_margin)))
     img1 = img1_warped * np.tile(img1_weight, (out_H, 1))
-    
-    blend = np.linspace(0,1,num=right_margin - left_margin)
-    img2_weight = np.concatenate((np.zeros(left_margin), blend, np.ones(out_W - right_margin)))
+
+    blend = np.linspace(0, 1, num=right_margin - left_margin)
+    img2_weight = np.concatenate(
+        (np.zeros(left_margin), blend, np.ones(out_W - right_margin)))
     img2 = img2_warped * np.tile(img2_weight, (out_H, 1))
-    
+
     merged = img1 + img2
-    ### END YOUR CODE
+    # END YOUR CODE
 
     return merged
