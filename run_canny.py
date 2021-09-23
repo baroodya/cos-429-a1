@@ -22,67 +22,118 @@ import numpy as np
 
 
 def main():
-    tHs = [0.5]
-    sigmas = [2.5]
-    tLs = [0.25]
+    tHs = [0.1]
+    sigmas = [1.5]
+    tLs = [0.05]
 
     # sigmas = [2.0]
     # tLs = [0.1]
     # tHs = [0.0]
 
-    im_names = ["csbldg", "Grace_Hopper"]
+    im_names = ["csbldg", "mandrill", "Grace_Hopper"]
 
-    im = io.imread("example_images/" + im_names[0] + ".jpg", as_gray=True) / 255.0
+    im = io.imread("example_images/" + im_names[2] + ".jpg", as_gray=True) / 255.0
 
     for i in range(len(sigmas)):
         for j in range(len(tLs)):
             for k in range(len(tHs)):
-                Fx, Fy = canny.filteredGradient(im, sigmas[i])
-                FxK, FyK = cannyK.filteredGradient(im, sigmas[i])
-                if np.array_equal(Fx, FxK) and np.array_equal(Fy, FyK):
-                    print("Equal!")
-                # cv2.namedWindow("X direction Gradient")
-                # cv2.imshow("X direction Gradient", Fx)
-                # cv2.waitKey(0)
+                Fx, Fy = cannyK.filteredGradient(im, sigmas[i])
+                # FxK, FyK = cannyK.filteredGradient(im, sigmas[i])
+                # if np.array_equal(Fx, FxK) and np.array_equal(Fy, FyK):
+                #     print("Equal!")
+                # else:
+                #     print("Not Equal!")
+                # # cv2.namedWindow("X direction Gradient")
+                # # cv2.imshow("X direction Gradient", Fx)
+                # # cv2.waitKey(0)
 
-                # cv2.namedWindow("Y direction Gradient")
-                # cv2.imshow("Y direction Gradient", Fy)
-                # cv2.waitKey(0)
+                # # cv2.namedWindow("Y direction Gradient")
+                # # cv2.imshow("Y direction Gradient", Fy)
+                # # cv2.waitKey(0)
                 plt.imshow(Fx, cmap="gray")
                 plt.show()
-                plt.imshow(FxK, cmap="gray")
-                plt.show()
+                # plt.imshow(FxK, cmap="gray")
+                # plt.show()
 
                 plt.imshow(Fy, cmap="gray")
                 plt.show()
 
-                F, D = canny.edgeStrengthAndOrientation(Fx, Fy)
-                FK, DK = cannyK.edgeStrengthAndOrientation(FxK, FyK)
-                # cv2.namedWindow("Gradient Magnitude")
+                F, D = cannyK.edgeStrengthAndOrientation(Fx, Fy)
+                # FK, DK = cannyK.edgeStrengthAndOrientation(FxK, FyK)
+                # # cv2.namedWindow("Gradient Magnitude")
                 plt.imshow(F, cmap="gray")
                 plt.show()
-                plt.imshow(FK, cmap="gray")
-                plt.show()
+                # plt.imshow(FK, cmap="gray")
+                # plt.show()
 
-                I = canny.suppression(F, D)
-                IK = cannyK.suppression(FK, DK)
-                # cv2.namedWindow("Suppressed Image")
+                I = cannyK.suppression(F, D)
+                # IK = cannyK.suppression(FK, DK)
+                # # cv2.namedWindow("Suppressed Image")
                 plt.imshow(I, cmap="gray")
                 plt.show()
-                plt.imshow(IK, cmap="gray")
-                plt.show()
+                # plt.imshow(IK, cmap="gray")
+                # plt.show()
 
-                edgeMap = canny.cannyEdgeDetection(im, sigmas[i], tHs[k], tLs[j])
-                edgeMapK = cannyK.cannyEdgeDetection(im, sigmas[i], tHs[k], tLs[j])
+                edgeMap = cannyK.cannyEdgeDetection(im, sigmas[i], tHs[k], tLs[j])
                 print("sigma =", sigmas[i])
                 print("tL =", tLs[j])
                 print("tH =", tHs[k])
                 print("----------------------------------")
+                # plt.imshow(edgeMap, cmap="gray")
+                # plt.show()
                 plt.imshow(edgeMap, cmap="gray")
                 plt.show()
-                plt.imshow(edgeMapK, cmap="gray")
-                plt.show()
 
+                # cv2.imwrite(
+                #     "Mandrill("
+                #     + str(sigmas[i])
+                #     + ","
+                #     + str(tLs[j])
+                #     + ","
+                #     + str(tHs[k])
+                #     + ".jpg",
+                #     edgeMap,
+                # )
+                # cv2.imwrite(
+                #     "Mandrill("
+                #     + str(sigmas[i])
+                #     + ","
+                #     + str(tLs[j])
+                #     + ","
+                #     + str(tHs[k])
+                #     + "_Fx.jpg",
+                #     Fx,
+                # )
+                # cv2.imwrite(
+                #     "Mandrill("
+                #     + str(sigmas[i])
+                #     + ","
+                #     + str(tLs[j])
+                #     + ","
+                #     + str(tHs[k])
+                #     + "_Fy.jpg",
+                #     Fy,
+                # )
+                # cv2.imwrite(
+                #     "Mandrill("
+                #     + str(sigmas[i])
+                #     + ","
+                #     + str(tLs[j])
+                #     + ","
+                #     + str(tHs[k])
+                #     + "_F.jpg",
+                #     F,
+                # )
+                # cv2.imwrite(
+                #     "Mandrill("
+                #     + str(sigmas[i])
+                #     + ","
+                #     + str(tLs[j])
+                #     + ","
+                #     + str(tHs[k])
+                #     + "_I.jpg",
+                #     I,
+                # )
                 # io.imsave('my_images/' + im_names[i] + '_H_gradient.jpg', Fx)
                 # io.imsave('my_images/' + im_names[i] + '_V_gradient.jpg', Fy)
                 # io.imsave('my_images/' + im_names[i] + '_magnitude.jpg', F)

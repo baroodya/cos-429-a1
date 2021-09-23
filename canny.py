@@ -17,7 +17,7 @@ def filteredGradient(im, sigma):
     # Fy: 2D double array with shape (height, width). The vertical
     #     gradients.
 
-    w = int(6 * sigma)
+    w = int(np.rint(6 * sigma))
     if w % 2 == 0:
         w += 1
 
